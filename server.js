@@ -6,7 +6,7 @@ var low = require('lowdb')
 
 const FileAsync = require('lowdb/adapters/FileAsync')
 
-const adapter = new FileAsync('.data/db.json')
+const adapter = new FileAsync('db.json')
 
 low(adapter).then(db => {
   db.defaults({ games: {} }).write()
