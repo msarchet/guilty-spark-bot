@@ -1,12 +1,9 @@
 const Eris = require('eris')
-
-const bot = new Eris(process.env.DISCORD_BOT_TOKEN); // Replace DISCORD_BOT_TOKEN in .env with your bot accounts token
-
-var low = require('lowdb')
-
+const low = require('lowdb')
 const FileAsync = require('lowdb/adapters/FileAsync')
 
-const adapter = new FileAsync('db.json')
+const bot = new Eris(process.env.DISCORD_BOT_TOKEN); // Replace DISCORD_BOT_TOKEN in .env with your bot accounts token
+const adapter = new FileAsync('.data/db.json')
 
 low(adapter).then(db => {
   db.defaults({ games: {} }).write()
@@ -117,16 +114,26 @@ low(adapter).then(db => {
     }
   }
   bot.on('ready', () => {
-    console.log(`Server started at ${new Date()}`)
+    console.log('Ready!')
   })
 
-  bot.on('messageCreate', (msg) => {
-    Object.keys(commands).forEach(command => {
-      if (msg.content.indexOf(`!${command}`) === 0) {
-        console.log(`Running the ${command}`)
-        commands[command](msg, bot)
+  const lookupCallbacks = (commands => {
+    return Object.keys(commands).reduce((lookup, command) => {
+      if (lookup[`!${command}`]) {
+        console.warn(`${command} already existed and was replaced`)
       }
-    })
+
+      lookup[`!${command}`] = (msg, bot) => commands[command](msg, bot)
+      return lookup
+    }, { })
+  })(commands)
+
+  bot.on('messageCreate', (msg) => {
+    const sanitized = msg.trim()
+    if (sanitized[0] && sanitized[0] === '!') {
+      const first = msg.split(' ')[0]
+      lookupCallbacks[first](msg, bot)
+    }
   })
 
   bot.connect()
