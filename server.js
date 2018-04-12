@@ -129,9 +129,14 @@ low(adapter).then(db => {
   })(commands)
 
   bot.on('messageCreate', (msg) => {
-    const sanitized = msg.trim()
+    if (msg.author.id == bot.user.id) {
+      return
+    } 
+    
+    const sanitized = msg.content.trim()
+
     if (sanitized[0] && sanitized[0] === '!') {
-      const first = msg.split(' ')[0]
+      const first = sanitized.split(' ')[0]
       lookupCallbacks[first](msg, bot)
     }
   })
